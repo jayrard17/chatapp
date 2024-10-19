@@ -1,0 +1,19 @@
+{
+  "name": "current-project",
+  "version": "1.0.0",
+  "description": "A chat application using Socket.IO and Tailwind CSS",
+  "main": "server.js",
+  "scripts": {
+    "dev": "nodemon server.js",
+    "start": "node server.js"
+  },
+  "author": "Maui",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.21.1",
+    "socket.io": "^4.0.0"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.0"
+  }
+}
