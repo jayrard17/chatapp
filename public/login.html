@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign In</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body class="bg-gray-50 flex items-center justify-center min-h-screen">
+    <div class="bg-white p-8 rounded-lg shadow-lg w-full max-w-md relative">
+        <h1 class="text-2xl font-bold mb-6 text-center text-black">Sign In</h1>
+        <h4 class="text-base font-normal mt-1 text-center text-gray-500">Use your credentials to log in</h4>
+        <br>
+
+        <form id="loginForm">
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700" for="email">Email</label>
+                <input type="email" id="email" name="email" required
+                    class="mt-1 p-2 border border-gray-300 rounded-md w-full focus:outline-none focus:ring focus:ring-blue-200" />
+            </div>
+
+            <div class="mb-4 relative">
+                <label class="block text-sm font-medium text-gray-700" for="password">Password</label>
+                <input type="password" id="password" name="password" required
+                    class="mt-1 p-2 border border-gray-300 rounded-md w-full focus:outline-none focus:ring focus:ring-blue-200" />
+                <button type="button" id="togglePassword" class="absolute right-3 top-9">
+                    <svg id="eyeIcon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                        stroke-width="2" stroke="currentColor" class="w-5 h-5">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M3 12s2.5-7 9-7 9 7 9 7-2.5 7-9 7-9-7-9-7z" />
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M12 15.5c-1.75 0-3.25-1.25-3.25-3 0-1.75 1.5-3 3.25-3s3.25 1.25 3.25 3c0 1.75-1.5 3-3.25 3z" />
+                    </svg>
+                </button>
+            </div>
+
+            <button type="submit"
+                class="w-full bg-gray-800 text-white p-2 rounded-md hover:bg-gray-700 transition duration-200">Sign
+                In</button>
+        </form>
+
+        <p class="mt-4 text-center text-sm text-gray-600">Don't have an Account? <a href="registration.html"
+                class="text-red-500 hover:underline">Sign Up</a></p>
+
+        <div id="message" class="mt-4 text-center text-sm"></div>
+    </div>
+
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            const response = await fetch('/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password })
+            });
+
+            const messageDiv = document.getElementById('message');
+            const message = await response.text();
+            messageDiv.innerHTML = message;
+
+            if (response.ok) {
+                window.location.href = 'index.html'; // Redirect on successful login
+            }
+        });
+
+        // Toggle password visibility
+        document.getElementById('togglePassword').addEventListener('click', function () {
+            const passwordInput = document.getElementById('password');
+            const eyeIcon = document.getElementById('eyeIcon');
+            const isVisible = passwordInput.type === 'text';
+            passwordInput.type = isVisible ? 'password' : 'text';
+            eyeIcon.setAttribute('stroke', isVisible ? 'gray' : 'black'); // Change icon color based on visibility
+        });
+    </script>
+</body>
+
+</html>
