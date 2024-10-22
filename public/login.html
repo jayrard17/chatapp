@@ -22,10 +22,19 @@
                     class="mt-1 p-2 border border-gray-300 rounded-md w-full focus:outline-none focus:ring focus:ring-blue-200" />
             </div>
 
-            <div class="mb-4">
+            <div class="mb-4 relative">
                 <label class="block text-sm font-medium text-gray-700" for="password">Password</label>
                 <input type="password" id="password" name="password" required
                     class="mt-1 p-2 border border-gray-300 rounded-md w-full focus:outline-none focus:ring focus:ring-blue-200" />
+                <button type="button" id="togglePassword" class="absolute right-3 top-9">
+                    <svg id="eyeIcon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                        stroke-width="2" stroke="currentColor" class="w-5 h-5">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M3 12s2.5-7 9-7 9 7 9 7-2.5 7-9 7-9-7-9-7z" />
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M12 15.5c-1.75 0-3.25-1.25-3.25-3 0-1.75 1.5-3 3.25-3s3.25 1.25 3.25 3c0 1.75-1.5 3-3.25 3z" />
+                    </svg>
+                </button>
             </div>
 
             <button type="submit"
@@ -58,6 +67,15 @@
             if (response.ok) {
                 window.location.href = 'index.html'; // Redirect on successful login
             }
+        });
+
+        // Toggle password visibility
+        document.getElementById('togglePassword').addEventListener('click', function () {
+            const passwordInput = document.getElementById('password');
+            const eyeIcon = document.getElementById('eyeIcon');
+            const isVisible = passwordInput.type === 'text';
+            passwordInput.type = isVisible ? 'password' : 'text';
+            eyeIcon.setAttribute('stroke', isVisible ? 'gray' : 'black'); // Change icon color based on visibility
         });
     </script>
 </body>

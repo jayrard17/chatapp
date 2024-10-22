@@ -57,7 +57,6 @@
             z-index: 1000;
         }
 
-        /* New styles for message alignment */
         .message {
             max-width: 60%;
             padding: 10px;
@@ -65,24 +64,6 @@
             margin-bottom: 10px;
             color: white;
             overflow-wrap: break-word;
-        }
-
-        .left {
-            background-color: rgba(0, 123, 255, 0.7);
-            /* Light blue for first user */
-            margin-left: 0;
-            /* Align to left */
-            margin-right: auto;
-            /* Push to left */
-        }
-
-        .right {
-            background-color: rgba(0, 200, 83, 0.7);
-            /* Light green for others */
-            margin-left: auto;
-            /* Push to right */
-            margin-right: 0;
-            /* Align to right */
         }
     </style>
 </head>
@@ -103,7 +84,7 @@
         class="w-4/5 max-w-4xl flex-grow overflow-y-auto p-4 bg-gray-800 text-gray-300 rounded-lg shadow-md my-4 space-y-4">
     </div>
 
-    <form id="send-container" class="w-4/5 max-w-4xl flex space-x-2 relative">
+    <form id="send-container" class="w-4/5 max-w-4xl flex space-x-2 relative pb-3">
         <input type="text" id="message-input" class="flex-grow bg-gray-700 text-white rounded px-3 py-2"
             placeholder="Type a message...">
         <button type="button" id="emoji-button" class="bg-yellow-500 text-white rounded px-3 py-2 hover:bg-yellow-600">

@@ -6,142 +6,124 @@ const fileInput = document.getElementById('file-input');
 const imageViewer = document.getElementById('image-viewer');
 const fullsizeImage = document.getElementById('fullsize-image');
 const exitIcon = document.getElementById('exit-icon');
-const emojiButton = document.getElementById('emoji-button');
-const emojiPicker = document.getElementById('emoji-picker');
 const signoutButton = document.getElementById('signout-button');
 
-let firstUser = null; // Variable to track the first user
+let username; // Variable to hold the user's name
 
-// Prompt the user for their name
-const name = prompt('What is your name?');
-if (!firstUser) {
-  firstUser = name; // Set the first user
-}
-appendMessage('You joined', name);
-socket.emit('new-user', name);
+// Fetch the username from the server
+fetch('/check-auth')
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Not authenticated');
+        }
+        return response.json();
+    })
+    .then(data => {
+        username = data.username;
+        appendMessage('You joined', username);
+        socket.emit('new-user', username);
+    })
+    .catch(error => {
+        console.error(error);
+        window.location.href = 'login.html'; // Redirect to login if not authenticated
+    });
 
-// Listen for incoming chat messages
+//  incoming chat messages
 socket.on('chat-message', data => {
-  appendMessage(`${data.name}: ${data.message}`, data.name);
+    appendMessage(data.name, data.message);
 });
 
-// Listen for incoming file messages
+//  incoming file messages
 socket.on('file-message', data => {
-  appendFileMessage(data.name, data.filename, data.fileUrl, data.fileType);
+    appendFileMessage(data.name, data.filename, data.data, data.fileType);
 });
 
-// Listen for user connection events
+//  user connection events
 socket.on('user-connected', name => {
-  appendMessage(`${name} has joined the chat`, name);
+    appendMessage(`${name} has joined the chat`, name);
 });
 
-// Listen for user disconnection events
+//  user disconnection events
 socket.on('user-disconnected', name => {
-  appendMessage(`${name} has left the chat`, name);
+    appendMessage(`${name} has left the chat`, name);
 });
 
-// Handle message form submission
 messageForm.addEventListener('submit', e => {
-  e.preventDefault();
-  const message = messageInput.value;
-  appendMessage(`You: ${message}`, name);
-  socket.emit('send-chat-message', message);
-  messageInput.value = ''; // Clear input field after sending
+    e.preventDefault();
+    const message = messageInput.value.trim(); // trim any whitespace
+
+    if (message) { 
+        socket.emit('send-chat-message', { name: username, message: message });
+        appendMessage('You', message); 
+        messageInput.value = ''; 
+    }
 });
 
-// Handle file input change
+//Handle file input change
 fileInput.addEventListener('change', e => {
-  const file = e.target.files[0];
-  if (file) {
-    const reader = new FileReader();
-    reader.onload = function(event) {
-      const fileData = event.target.result;
-      socket.emit('send-file', { filename: file.name, data: fileData, fileType: file.type });
-      appendFileMessage('You', file.name, URL.createObjectURL(file), file.type);
-    };
-    reader.readAsArrayBuffer(file);
-  }
+    const file = e.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(event) {
+            const fileData = event.target.result;
+            socket.emit('send-file', { name: username, filename: file.name, data: fileData, fileType: file.type });
+            appendFileMessage('You', file.name, fileData, file.type); 
+        };
+        reader.readAsDataURL(file); 
+    }
 });
 
-// Function to append messages to the chat
-function appendMessage(message, userName) {
-  const messageElement = document.createElement('div');
-
-  // Check if the user is the first user or not
-  const isFirstUser = userName === firstUser;
-  messageElement.className = isFirstUser ? 'message left' : 'message right'; // Apply different classes
-
-  messageElement.innerText = message;
-  messageContainer.append(messageElement);
-  
-  // Scroll to the bottom of the message container
-  messageContainer.scrollTop = messageContainer.scrollHeight;
+// append messages to the chat
+function appendMessage(userName, message) {
+    const messageElement = document.createElement('div');
+    messageElement.className = 'message';
+    messageElement.innerText = `${userName}: ${message}`; 
+    messageContainer.append(messageElement);
+    messageContainer.scrollTop = messageContainer.scrollHeight;
 }
 
-// Function to append file messages to the chat
-function appendFileMessage(name, filename, fileUrl, fileType) {
-  const messageElement = document.createElement('div');
-  messageElement.className = 'file-message';
-  
-  if (fileType.startsWith('image/')) {
-    messageElement.innerHTML = `
-      <p>${name} shared an image:</p>
-      <img src="${fileUrl}" alt="${filename}" style="max-width: 100%; max-height: 300px; object-fit: contain;">
-    `;
-    const imgElement = messageElement.querySelector('img');
-    imgElement.addEventListener('click', () => showFullsizeImage(fileUrl));
-  } else {
-    messageElement.innerHTML = `${name} shared a file: <a href="${fileUrl}" target="_blank">${filename}</a>`;
-  }
-  
-  messageContainer.append(messageElement);
-  // Scroll to the bottom of the message container
-  messageContainer.scrollTop = messageContainer.scrollHeight;
+//  append file messages to the chat
+function appendFileMessage(name, filename, fileData, fileType) {
+    const messageElement = document.createElement('div');
+    messageElement.className = 'file-message';
+    
+    if (fileType.startsWith('image/')) {
+        messageElement.innerHTML = 
+            `<p>${name} shared an image:</p>
+            <img src="${fileData}" alt="${filename}" style="max-width: 100%; max-height: 300px; object-fit: contain;">`;
+        const imgElement = messageElement.querySelector('img');
+        imgElement.addEventListener('click', () => showFullsizeImage(fileData));
+    } else {
+        messageElement.innerHTML = `${name} shared a file: <a href="${fileData}" target="_blank">${filename}</a>`;
+    }
+    
+    messageContainer.append(messageElement);
+    messageContainer.scrollTop = messageContainer.scrollHeight;
 }
 
-// Function to show fullsize image
+//  show fullsize image
 function showFullsizeImage(src) {
-  fullsizeImage.src = src;
-  imageViewer.style.display = 'flex';
+    fullsizeImage.src = src;
+    imageViewer.style.display = 'flex';
 }
 
-// Event listener for exit icon
+// exit icon
 exitIcon.addEventListener('click', () => {
-  imageViewer.style.display = 'none';
-});
-
-// Event listener to close image viewer when clicking outside the image
-imageViewer.addEventListener('click', (e) => {
-  if (e.target === imageViewer) {
     imageViewer.style.display = 'none';
-  }
 });
 
-// Emoji picker functionality
-emojiButton.addEventListener('click', () => {
-  emojiPicker.style.display = emojiPicker.style.display === 'none' ? 'block' : 'none';
+// event listener to close image viewer when clicking outside the image
+imageViewer.addEventListener('click', (e) => {
+    if (e.target === imageViewer) {
+        imageViewer.style.display = 'none';
+    }
 });
 
-document.querySelector('emoji-picker').addEventListener('emoji-click', event => {
-  messageInput.value += event.detail.unicode;
-  emojiPicker.style.display = 'none';
-});
-
-// Close emoji picker when clicking outside
-document.addEventListener('click', (event) => {
-  if (!emojiButton.contains(event.target) && !emojiPicker.contains(event.target)) {
-    emojiPicker.style.display = 'none';
-  }
-});
-
-// Sign-out functionality
+// sign-out button function
 signoutButton.addEventListener('click', () => {
-  // Disconnect from the socket
-  socket.disconnect();
-  
-  // Clear any stored user data (if applicable)
-  // localStorage.removeItem('user');
-  
-  // Redirect to login page
-  window.location.href = 'login.html';
+    // disconnect from the socket
+    socket.disconnect();
+    
+    // redirect to login page onced clicked
+    window.location.href = 'login.html';
 });
